@@ -1,0 +1,45 @@
+1. From a table sales(customer_id, amount, sale_date), find the customer who made the highest single purchase amount.
+select customer_id, amount from sales where amount = (select max(amount) as single_max_amount from sales)
+# better than using ORDER BY ... LIMIT 1 because it handles ties.
+
+2.Show number of employees in each department, but only show departments with more than 5 employees.
+select dept, count(emp_id) as employee_count from employees
+group by dept
+having count(emp_id) > 5
+
+Easy Q1:
+
+From a table students(student_id, name, score),
+3. find all students who scored more than 80.
+3. select student_id, name, score from students where score > 80
+
+Easy Q2:
+
+From a table products(product_id, name, price),
+4. show the total number of products that cost less than 100.
+4. select count(product_id) from products where price < 100
+
+Medium Q1:
+
+From table orders(order_id, customer_id, amount),
+5. find the top 3 customers with the highest total spending.
+5. select customer_id, sum(amount) as spent from orders
+group by customer_id
+order by sum(amount) desc
+limit 3
+
+Medium Q2:
+
+From table employees(emp_id, name, dept, salary),
+6. find employees whose salary is above the average salary of their department.
+6. with cte1 as (select dept, avg(salary) as avg_salary from employees group by dept)
+select employees.emp_id, employees.name, employees.dept, employees.salary from employees join cte1 on cte1.dept = employees.dept
+where employees.salary > cte1.avg_salary
+
+learning
+
+Clause	Can use alias?	Why
+WHERE	❌ No	Runs before SELECT
+GROUP BY	❌ No	Runs before SELECT
+HAVING	❌ Usually No	Often processed before SELECT
+ORDER BY	✅ Yes	Runs after SELECT, so alias exists
