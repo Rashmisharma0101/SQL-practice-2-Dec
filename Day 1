@@ -1,0 +1,15 @@
+From a table sales(customer_id, amount, sale_date),
+1. find all customers who have made more than 3 purchases, and show their total purchase amount.
+1. select customer_id, count(sale_date) as purchasesnumber, sum(amount) as total_purchase_amount
+from sales group by customer_id
+having count(sale_date) > 3
+
+From employees(emp_id, emp_name, dept, salary), 
+2. list employees whose salary is above the average salary of their department.
+2. with cte1 as (select department, avg(salary) as avgsal from employees group by department)
+select employees.emp_id, employees.emp_name, employees.salary, cte1.department, cte1.avgsal
+from employees join cte1
+on employees.department = cte1.department
+where employees.salary > cte1.avgsal
+
+# learning -  cannot use SELECT aliases inside HAVING, so you must repeat the aggregate.
