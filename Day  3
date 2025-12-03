@@ -1,0 +1,31 @@
+1. Find the total revenue generated in the year 2024, grouped by month, sorted from January to December.
+You have a table orders(order_id, customer_id, amount, order_date).
+1. select month(order_date) as month_number, sum(amount) as total_revenue from orders
+where year(order_date)  = 2024
+group by month(order_date) order by month(order_date)
+
+customers(customer_id, name, city)
+orders(order_id, customer_id, amount)
+2. List the top 3 cities that generated the highest total revenue, along with the revenue amount.
+2. select customers.city, sum(orders.amount) as total_revenue from customers join orders
+on customers.customer_id = orders.customer_id
+group by customers.city order by total_revenue desc
+limit 3
+
+3. Running Total per Customer
+Table: orders(order_id, customer_id, amount, order_date)
+For each customer, calculate a running total of their spending ordered by date.
+
+3. with cte1 as (select customer_id, order_id, order_date, amount, sum(amount) over (partition by customer_id order by order_date)
+from orders) as running_total
+select cte1.customer_id, cte1.order_id, cte1.order_date, cte1.amount, cte1.running_total from cte1
+order by cte1.customer_id, cte1.order_date
+
+4. Return the employee(s) who have the 2nd highest salary within each department.
+employees(emp_id, name, dept, salary)
+4. with cte1 as (select emp_id, name, dept, salary, dense_rank() over (partition by department order by salary desc) as rnk
+from employees)
+select cte1.emp_id, cte1.name,cte1.dept, cte1.salary from cte1
+where cte1.rnk  = 2
+
+5. 
