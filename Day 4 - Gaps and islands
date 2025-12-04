@@ -1,0 +1,13 @@
+Problem 1
+Table: logins(user_id, login_date)
+Find each user’s longest consecutive daily login streak.
+
+with distict_date as (select distinct user_id as id, login_date as dt from logins),
+row_number as (select id, dt, rownumber() over (partition by id order by dt) as rn from  distict_date),
+grp_key as (Select id, dt, rn, (dt-(rn * inteval '1 day')) as gk from row_number),
+streak_len as (Select id, min(dt) as streak_start, max(dt) as streak_end, count(*) as streak_len
+from grp_key group by id, gk)
+select id, coalesce(max(streak_len),0) as longest_streak from streak_len group by id order by id
+
+Problem 2
+
