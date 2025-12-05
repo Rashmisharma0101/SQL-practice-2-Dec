@@ -10,4 +10,13 @@ from grp_key group by id, gk)
 select id, coalesce(max(streak_len),0) as longest_streak from streak_len group by id order by id
 
 Problem 2
+Monthly Cohort Retention
 
+with cte1 as (select id, extract(year from login_date) as yr, extract(month from login_date) as mn from logins
+where extract(year from login_date) = 2024
+group by id,extract(year from login_date) as yr, extract(month from login_date)),
+
+cte2 as ( select id, mn, lag(mn) over (partition by is order by mn) as prev_month from cte1),
+cte3 as (select mn, count(distinct id) as active_users, count(distinct  case when prev_month = mn -1 then id) as retaied_users
+from cte2 group by mn)
+select mn, (active_users, retained_users / active_users) * 100.0 as retetion_percentage from cte3 order by mn
