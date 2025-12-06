@@ -77,3 +77,19 @@ churn_gap_days
 next_login_date (after long inactivity, if any)
 
 6. 
+
+
+7. Customer’s Longest Purchase Streak (Consecutive Days)
+Table:
+purchases(customer_id, purchase_date)
+Question:
+For each customer, calculate their longest streak of consecutive purchase days.
+
+with cte1 as (select customer_id, purchase_date, from purchased group by customer_id, purchase_date),
+cte2 as (select customer_id, purchase_date, rank() over (partition by customer_id order by purchase_date) as rnk
+from cte1),
+cte3 as (select customer_id, purchase_date, (purchase_date - (rnk * interval '1 Day')) as diff from cte2),
+cte4 as (select customer_id, count(diff) as streak_count from cte3 group by customer_id, diff)
+select customer_id, max(streak_count) as longest_streak from cte4 group by customer_id order by longest_streak desc
+
+8. 
