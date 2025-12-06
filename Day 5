@@ -24,3 +24,56 @@ select login_date, count(distinct user_id) as rolling_90_days
 from dates left join logins
 on login_date between date_sub(dates.login_date, interval 89 day) and dates.login_date
 group by dates.login_date order by dates.login_date
+
+More  Hard Questions
+
+1. Monthly Cohort Retention
+1. 
+
+2. Detect Missing Transaction Days (Gap Detection)
+Table:
+transactions(txn_id, txn_date) — multiple users combined.
+2. with cte1 as (select txn_date as dt, count(txn_id) as cnt from transactions group by txn_date),
+cte2 as (select dt, lag(dt) over (order by dt) as pd from cte1),
+cte3 as (select dt, pd, coalesce(abs(dt-pd), 0) as diff from cte2),
+cte4 as (dt, pd, diff -1 as gap from cte3)
+select (pd + (1 * interval '1 day')) as start_missing_date, (dt- (1 * interval '1 day')) as end_missing_date, gap
+from cte4 where gap >=2
+
+3. Table:
+orders(user_id, product_id)
+Question:
+For each user, return the top 3 most frequently ordered products.
+If ties, break by alphabetical product_id.
+
+with cte1 as (select user_id, product_id, count(product_id) as cnt from orders group by user_id, product_id order by
+user_id, cnt),
+cte2 as (select user_id, product_id, rank() over (partition by user_id order by cnt desc) as rnk from cte1)
+select user_id, product_id from cte2 where rank <= 3 order by user_id, product_id
+
+4. Running Balance Per Customer (Window Range)
+
+Table:
+payments(customer_id, payment_date, amount)
+(positive = deposit, negative = deduction)
+
+Question:
+Compute a running balance for each customer ordered by date.
+
+4. with cte1 as (select customer_id, payment_date, amount from payments group by customer_id, payment_date)
+select customer_id, payment_date, amount, sum(amount) over (partition by customer_id order by payment_date) as runningbalance
+from cte1 order by customer_id, payment_date
+
+5. Hardest: First & Last Activity Before Churn
+
+Table:
+logins(user_id, login_date)
+A user is churned if they have no login for 45+ days.
+Question:
+For each churned user, return:
+user_id
+last_active_date
+churn_gap_days
+next_login_date (after long inactivity, if any)
+
+6. 
