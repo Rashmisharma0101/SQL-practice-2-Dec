@@ -1,0 +1,26 @@
+Problem 1
+with cte1 as (select customer_id, order_date, row_number() over(partition by customer_id order by order_date) as rn
+from orders),
+cte2 as (select customer_id, order_date, rn, (order_date - (rn * iterval '1Day')) as grp_key from cte1),
+cte3 as (select customer_id, grp_key, count(*) as streak_count, min(order_date) as start_date, max(order_date) as end_date,
+from cte2 group by customer_id, grp_key)
+SELECT 
+    customer_id,start_date, end_date, streak_count AS longest_streak
+FROM (
+    SELECT customer_id,start_date, end_date, streak_count, ROW_NUMBER() OVER (
+            PARTITION BY customer_id 
+            ORDER BY streak_count DESC, start_date ASC
+        ) AS rnk
+    FROM cte3
+) t
+WHERE rnk = 1
+ORDER BY customer_id;
+
+problem 2
+For every date, count unique users who logged in in the last 90 days (inclusive).
+
+with dates as (select distinct login_date from logins)
+select login_date, count(distinct user_id) as rolling_90_days
+from dates left join logins
+on login_date between date_sub(dates.login_date, interval 89 day) and dates.login_date
+group by dates.login_date order by dates.login_date
