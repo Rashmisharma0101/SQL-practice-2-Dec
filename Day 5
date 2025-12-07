@@ -92,4 +92,55 @@ cte3 as (select customer_id, purchase_date, (purchase_date - (rnk * interval '1 
 cte4 as (select customer_id, count(diff) as streak_count from cte3 group by customer_id, diff)
 select customer_id, max(streak_count) as longest_streak from cte4 group by customer_id order by longest_streak desc
 
-8. 
+8. Find Customers Who Bought the Same Product 3 Months in a Row
+
+Table:
+sales(customer_id, product_id, sale_date)
+
+Question:
+Return customers who bought the same product in 3 consecutive calendar months.
+
+with cte1 as (select customer_id, product_id, month(sale_date)  as mn from sales group by customer_id, product_id ).
+cte2 as (select customer_id, product_id, mn, row_number() over (partition by customer_id, product_id order by mn) as rnk
+from cte1),
+cte3 as (select customer_id, product_id, mn, mn-rnk as diff from cte2),
+cte4 as (select customer_id, product_id, count(diff) as number_of_month
+from cte3
+group by customer_id, product_id, diff
+having count(diff) = 3)
+select distinct customer_id from cte4
+
+9. Percentage of Revenue From New Users Each Month
+
+Tables:
+orders(user_id, order_date, amount)
+users(user_id, signup_date)
+
+Question:
+For each month, compute:
+
+new_user_revenue / total_revenue
+
+9. with cte1 as (select user_id, month(order_date) as mn, amount, month(signup_date) as smn
+from users left join orders
+on users.user_id = orders.user_id),
+cte2 as (select mn , amount, case
+when mn = smn then 1 else 0 end as label
+from cte1),
+cte3 as (select mn, 
+sum(case when label  = 1 then amount) as new_user_revenue,
+sum(amount) as total_revenue
+group by mn)
+select mn, new_user_revenue / total_revenue
+from cte3
+
+from cte1 
+
+
+
+
+
+
+
+
+
