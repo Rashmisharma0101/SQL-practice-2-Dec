@@ -136,7 +136,16 @@ from cte3
 
 from cte1 
 
+10. Hard Window Logic: Longest Idle Gap Per Employee
 
+Table:
+attendance(emp_id, login_time, logout_time)
+
+Question:
+For each employee, find the longest gap between consecutive shifts.
+
+Output:
+emp_id, gap_hours, previous_logout, next_login
 
 
 
