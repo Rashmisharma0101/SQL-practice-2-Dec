@@ -1,0 +1,40 @@
+🔹 Practice Question 1: Customer Retention & Window Functions
+Table: orders
+column_name	type, order_id	INT, customer_id	INT, order_date	DATE, order_amount	DECIMAL
+Q1️⃣
+For each customer, find:
+Their first order date
+Their most recent order date
+The number of days between their first and last order
+Their total lifetime spent
+  
+SOLUTION
+
+SELECT DISTINCT customer_id,
+       MIN(order_date) OVER (PARTITION BY customer_id) AS first_order,
+       MAX(order_date) OVER (PARTITION BY customer_id) AS recent_order,
+       DATEDIFF(
+         MAX(order_date) OVER (PARTITION BY customer_id),
+         MIN(order_date) OVER (PARTITION BY customer_id)
+       ) AS days_between_f_l,
+       SUM(order_amount) OVER (PARTITION BY customer_id) AS spent
+FROM orders;
+
+
+Q2️⃣ Practice Question 2: Top Performer per Group (Ranking Logic)
+Table: employee_sales
+column_name	type
+employee_id	INT
+region	VARCHAR
+sale_date	DATE
+sales_amount	DECIMAL
+For each region, return the employee(s) who achieved the highest total sales.
+  
+SOLUTION
+  
+with cte1 as (select region, employee_id, sum(sales_amount) as total_Sales from employee_sales
+              group by region, employee_id),
+ranking as (select region, employee_id, sales_amount, dense_rank() over (partition by region order by total_Sales desc) as rnk
+from cte1)
+select ranking.region, ranking.employee_id, ranking.total_Sales from ranking
+where ranking.rnk = 1
