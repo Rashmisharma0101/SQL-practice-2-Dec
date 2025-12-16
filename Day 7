@@ -1,0 +1,15 @@
+1. Identify all dates where total_sales dropped by more than 30% compared to the previous day.
+
+with cte1 as (Select sales_date, sum(total_sales) as total_sales from daily_sales group by sales_date),
+cte2 as (select sale_date, total_sales, lag(total_sales) over (order by sale_date) as previous_day_sales
+from cte1),
+cte3 as (Select sale_date, total_sales, previous_day_sales, ((total_sales - previous_day_sales)/previous_day_sales)*100.0 as drop_percentage from cte2)
+select sale_date, total_sales, previous_day_sales, drop_percentage from cte3
+where drop_percentage > 30
+
+2. For each user and each login_date, calculate the number of logins in the last 7 days (including the current day).
+
+select user_id, login_date, count(*) over (partition by user_id order by login_date range between interval '6 days' PRECEDING AND CURRENT ROW)
+as last_7_day_logins from user_logins
+order by user_id, login_date
+# range between interval '6 days' PRECEDING AND CURRENT ROW - “Look at all rows whose date is within the last 6 days.”
