@@ -1,0 +1,33 @@
+Q1️ Identify customers who placed orders on at least 3 consecutive days.
+with cte1 as (select customer_id, order_date as od, sum(order_amount) as sums from orders group by customer_id, order_date
+order by customer_id, order_date),
+cte2 as (select customer_id, od, row_number() over (partition by customer_id order by order_date) as rn from cte1),
+cte3 as (select customer_id, od, od - rn as diff from cte2),
+cte4 as (select customer_id, min(od) as start_date, max(od) as end_date from cte3)
+select customer_id, start_date, end_date from cte4 
+group by customer_id
+having count(customer_id) >= 3
+
+Q2️ For each month, calculate each category’s percentage contribution to total monthly revenue.
+
+with cte1 as (select mn, category, sum(revenue) as cr from sales group by mn, category),
+cte2 as (select mn, sum(cr) as mr from cte1 group by mn),
+cte3 as (select cte1.mn, cte1.category, cte1.cr, cte2.mr from cte1 join cte2 on cte1.mn = cte2.mn)
+select cte3.mn, cte3.category, (cte3.cr/cte3.mr)*100.0 as revenue_percentage from cte3
+
+Alternate
+SELECT
+    mn,
+    category,
+    SUM(revenue) AS category_revenue,
+    SUM(SUM(revenue)) OVER (PARTITION BY mn) AS monthly_revenue,
+    (SUM(revenue) * 100.0 /
+     SUM(SUM(revenue)) OVER (PARTITION BY mn)) AS revenue_percentage
+FROM sales
+GROUP BY mn, category;
+
+
+
+
+
+
