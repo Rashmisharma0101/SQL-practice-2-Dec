@@ -1,0 +1,25 @@
+Find users who logged in on 3 consecutive days but did not log in on the 4th day.
+with cte1 as (select user_id, last_login from user_logins order by user_id, last_login),
+cte2 as (select user_id, last_login, row_number() over (partition by user_id order by last_login) as rnk from cte1),
+cte3 as (select user_id, last_login, (last_login- rnk) as diff from cte2),
+cte4 as (select user_id, max(last_login) as last_login_date 
+from cte3 
+group by user_id , diff
+having count(user_id) = 3)
+select user_id, last_login_date from cte4  # “Does any row exist where this same user logged in on the 4th day?”
+where  not exists(
+select 1 from user_logins where user_logins.user_id = cte4.user_id and user_logins.last_login = cte4.last_login_date + interval '1 day')
+
+Problem 2
+
+For each customer:
+Calculate total lifetime spend
+Calculate percentage contribution of each customer to total revenue 
+Return only customers who contribute more than 5% of total revenue
+
+with cte1 as (Select customer_id, sum(order_amount)as lifetime_spent from orders group by customer_id),
+cte2 as (select customer_id, lifetime_spent, sum(lifetime_spent) over () as total_revenue from cte1),
+cte3 as (select customer_id, lifetime_spent, (lifetime_spent* 1.0 /total_revenue)*100 as revenue_percentage from cte2)
+select customer_id, lifetime_spent, revenue_percentage from cte3
+where revenue_percentage > 5
+
