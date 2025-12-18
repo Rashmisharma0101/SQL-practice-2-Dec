@@ -21,5 +21,6 @@ with cte1 as (Select customer_id, sum(order_amount)as lifetime_spent from orders
 cte2 as (select customer_id, lifetime_spent, sum(lifetime_spent) over () as total_revenue from cte1),
 cte3 as (select customer_id, lifetime_spent, (lifetime_spent* 1.0 /total_revenue)*100 as revenue_percentage from cte2)
 select customer_id, lifetime_spent, revenue_percentage from cte3
-where revenue_percentage > 5
+where (lifetime_spent* 1.0 /total_revenue)*100 > 5
 
+learnig-- You can’t reference a SELECT alias in WHERE because WHERE executes before SELECT.”
