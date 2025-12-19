@@ -1,0 +1,12 @@
+Question 1: Top customer by contribution (Window Function)
+with cte1 as (select customer_id, month(order_date) as mn, sum(order_amount) as amt from orders group by mn, customer_id),
+cte2 as (select mn, sum(order_amount) over (partition by mn order by mn) as amt, customer_id from cte1),
+cte3 as (select mn, amt, customer_id, amt, dense_rank() over (mn order by amt desc) as rnk from cte2),
+select mn, customer_id, amt from cte3 where rnk = 1
+
+Question 2: Find the number of customers per country who have never placed an order.
+with cte1 as (select customer_id, country from customers left join orders
+              on customers.customer_id = orders.customer_id
+              where orders.customer_id is null)
+select country, count(distinct customer_id) as cnt from cte1 group by country
+
