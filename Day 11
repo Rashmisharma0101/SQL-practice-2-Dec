@@ -24,5 +24,17 @@ cte4 as (select customerid, mn,amount, prev_amt , comp, lag(comp) over (partitio
 from cte3)
 select distinct customerid from cte4 where comp = 1 and prev_comp = 1
 
+4. Percentage contribution of each category per country
+with cte1 as (select customers.country, products.category, sum(price*quantity)  as category_revenue
+from orders join order_items on orders.order_id = order_items.order_id
+join products on products.product_id = order_items.product_id
+join customers on customers.customer_id = orders.customer_id
+group by customers.country, products.category),
+cte2 as (select cte1.country, cte1.category, category_revenue, sum(category_revenue) over (partition by country) as country_revenue
+from cte1)
+select country, category, category_revenue, country_revenue, (category_revenue/ country_revenue)*100 as percentage_contribution
+from cte2
 
-
+# Key Learning (remember this rule)
+ORDER BY inside a window function = running value
+No ORDER BY = full partition total
