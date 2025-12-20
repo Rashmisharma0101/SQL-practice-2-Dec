@@ -1,0 +1,28 @@
+1. For each customer, calculate a running total of amount, but reset the total at the start of every month.
+
+select customerid, transactiondate, amount, sum(amount) over (partition by customerid, year(transactiondate), 
+month(transactiondate) order by transactiondate
+rows between unbounded precending and current row) as monthly_running_total from transactions
+
+2. For each country, find the product category with the highest total revenue.
+
+with cte1 as (select customers.country, products.category, sum(price*quantity)  as revenue
+from orders join order_items on orders.order_id = order_items.order_id
+join products on products.product_id = order_items.product_id
+join customers on customers.customer_id = orders.customer_id
+group by customers.country, products.category),
+cte2 as (select country, category, revenue, rank()over (partition by country order by revenue desc) as rnk from cte1),
+select country, category, revenue from cte2 where rank  =1 
+
+3. Find customers whose total monthly spend strictly increases for at least 3 consecutive months.
+
+with cte1 as (select customerid, month(orderdate) as mn, sum(amount) as amount from orders group by customerid, month(orderdate)),
+cte2 as (select customerid, mn, amount, lag(amount) over (partition by customerid orderby mn) as prev_amt from cte1),
+cte3 as (select customerid, mn,amount, prev_amt, 
+case when amount > prev_amt then 1 else 0 end as comp from cte2),
+cte4 as (select customerid, mn,amount, prev_amt , comp, lag(comp) over (partition by customerid order by mn) as prev_comp
+from cte3)
+select distinct customerid from cte4 where comp = 1 and prev_comp = 1
+
+
+
