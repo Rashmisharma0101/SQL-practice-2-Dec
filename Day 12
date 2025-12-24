@@ -1,0 +1,23 @@
+Problem 1
+For each month, calculate:
+number of new customers (first-ever purchase in that month)
+number of repeat customers
+
+order_id, customer_id, order_date, order_amount
+
+with cte1 as (select customer_id, month(order_date) as order_mn from orders),
+cte2 as (Select customer_id, month(min(order_date)) as first_month from order group by customer_id),
+cte3 as (slect customer_id, first_month, order_mn from cte1 join cte2 on cte1.customer_id  = cte2.customer_id)
+select customer_id, count (distinct case when order_mn > first_month then customer_id end ) as new_customers,
+count (distinct case when order_mn = first_month then customer_id end ) as repeat_customers
+from cte3 group by customer_id, order by order_mn
+
+----------------------------------------------------------------------------------------------------------------
+
+Problem 2
+For each day, calculate the 7-day rolling average revenue, including:
+the current day
+the previous 6 days
+select sale_date, revenue, avg(revenue) over (order by sale_date rows between 6 preceeding and current row) as rolling_7_day
+from sales
+order by sale_date
