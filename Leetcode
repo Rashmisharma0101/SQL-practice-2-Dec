@@ -1,0 +1,64 @@
+WITH cte1 AS (
+    SELECT
+        p.product_id,
+        u.units,
+        p.price * u.units AS total_price
+    FROM prices p
+    LEFT JOIN unitssold u
+        ON p.product_id = u.product_id
+       AND u.purchase_date BETWEEN p.start_date AND p.end_date
+)
+SELECT
+    product_id,
+    COALESCE(
+        ROUND(SUM(total_price) / NULLIF(SUM(units), 0), 2),
+        0
+    ) AS average_price
+FROM cte1
+GROUP BY product_id;
+
+learning -
+How NULLIF prevents division by zero
+SUM(total_price) / NULLIF(SUM(units), 0)
+
+Case 1: Units exist
+SUM(units) = 10
+NULLIF(10, 0) → 10
+
+
+Calculation proceeds normally:
+
+SUM(total_price) / 10
+
+Case 2: No units sold
+SUM(units) = 0
+NULLIF(0, 0) → NULL
+
+
+Now expression becomes:
+
+SUM(total_price) / NULL
+
+
+➡️ Result = NULL
+➡️ No error occurs
+
+4️⃣ Why COALESCE is used after that
+
+Full expression:
+
+COALESCE(
+    ROUND(SUM(total_price) / NULLIF(SUM(units), 0), 2),
+    0
+)
+
+What happens:
+Scenario	Division result	COALESCE output
+Units sold	12.345	12.35
+No units sold	NULL	0
+
+So:
+
+NULLIF → avoids crash
+
+COALESCE → forces output to 0
